@@ -54,7 +54,7 @@ dict[28] = "Occupation-tradesman/craftsman"
 dict[29] = "Occupation-unemployed"
 dict[30] = "Occupation-writer"
 
-f = open('users.dat', 'r')
+f = open('/kaggle/input/movielens-1m-dataset/users.dat', 'r')
 zipcode = {}
 for i in range(1, user_count + 1):
 	line = f.readline()
@@ -66,7 +66,7 @@ for i in range(1, user_count + 1):
 		dict[feature_size] = "Zipcode-" + str(l[-1])
 f.close()
 
-f = open('users.dat', 'r')
+f = open('/kaggle/input/movielens-1m-dataset/users.dat', 'r')
 user_i = [[]]
 user_v = [[]]
 for i in range(1, user_count + 1):
@@ -97,7 +97,7 @@ for i in range(1960, 1970):
 for i in range(1970, 2001):
 	year_dict[i] = 6 + i - 1970
 
-f = open('movies.dat', 'r', encoding="ISO-8859-1")
+f = open('/kaggle/input/movielens-1m-dataset/movies.dat', 'r', encoding="ISO-8859-1")
 genres = {}
 for i in range(1, movie_count + 1):
 	line = f.readline()
@@ -124,7 +124,7 @@ print('The max number is :', max_gen)
 
 #feature_size += 1 # for year of release
 
-f = open('movies.dat', 'r', encoding="ISO-8859-1")
+f = open('/kaggle/input/movielens-1m-dataset/movies.dat', 'r', encoding="ISO-8859-1")
 movie_i = {}
 movie_v = {}
 for i in range(1, movie_count + 1):
@@ -183,7 +183,7 @@ print("The number of movie's feature is:", len(movie_i))
 feature_size += 1 # for timestamp
 dict[feature_size] = "Timestamp"
 
-f = open('ratings.dat', 'r')
+f = open('/kaggle/input/movielens-1m-dataset/ratings.dat', 'r')
 
 data_i = []
 data_v = []
