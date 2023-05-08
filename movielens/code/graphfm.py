@@ -271,8 +271,8 @@ class GraphFM():
 
 
             self.global_step = tf.Variable(0, name="global_step", trainable=False)
-            self.var1 = [v for v in tf.trainable_variables() if v.name != 'feature_bias:0']
-            self.var2 = [tf.trainable_variables()[1]]    # self.var2 = [feature_bias]
+            self.var1 = [v for v in tf.compat.v1.trainable_variables() if v.name != 'feature_bias:0']
+            self.var2 = [tf.compat.v1.trainable_variables()[1]]    # self.var2 = [feature_bias]
 
             if self.optimizer_type == "adam":
                 self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate,
@@ -299,7 +299,7 @@ class GraphFM():
 
     def count_param(self):
         k = (np.sum([np.prod(v.get_shape().as_list())
-                                                    for v in tf.trainable_variables()]))
+                                                    for v in tf.compat.v1.trainable_variables()]))
 
         print("total parameters :%d" % k)
         print("extra parameters : %d" % (k - self.feature_size * self.embedding_size))
