@@ -57,16 +57,16 @@ def gat_attention(queries,
     # Linear projections
     with tf.compat.v1.variable_scope("att_blocks%d" % block):
         if field > 0: tf.get_variable_scope().reuse_variables()
-        A = tf.keras.layers.dense(values, num_heads, activation=tf.nn.relu,
+        A = tf.keras.layers.Dense(values, num_heads, activation=tf.nn.relu,
                         name='att_b%d_f%d'% (block, 0))
     with tf.compat.v1.variable_scope("w_blocks%d" % block):
         # if field > 0: tf.get_variable_scope().reuse_variables()
-        H = tf.keras.layers.dense(values, num_units, activation=None, use_bias=False, name='w_b%d_f%d'% (block, field))
-        # A = tf.keras.layers.dense(H, num_heads, activation=tf.nn.relu, name='att_b%d_f%d'%(block, field))
+        H = tf.keras.layers.Dense(values, num_units, activation=None, use_bias=False, name='w_b%d_f%d'% (block, field))
+        # A = tf.keras.layers.Dense(H, num_heads, activation=tf.nn.relu, name='att_b%d_f%d'%(block, field))
     if has_residual:
         with tf.compat.v1.variable_scope("res_blocks%d" % block):
             # if field > 0: tf.get_variable_scope().reuse_variables()
-            Q_res = tf.keras.layers.dense(queries, num_units, activation=tf.nn.relu, name='res_b%d_f%d'% (block, field)) # [batch_size, 1, num_units]
+            Q_res = tf.keras.layers.Dense(queries, num_units, activation=tf.nn.relu, name='res_b%d_f%d'% (block, field)) # [batch_size, 1, num_units]
 
     # Split and concat
     A_ = tf.concat(tf.split(A, num_heads, axis=2), axis=0) # [num_heads*batch_size, field_size, 1]
@@ -75,8 +75,8 @@ def gat_attention(queries,
     # keep the top k nodes
     with tf.compat.v1.variable_scope("gsl_blocks%d" % block):
         if field > 0: tf.get_variable_scope().reuse_variables()
-        S = tf.keras.layers.dense(values, 16, activation=tf.nn.relu, name='gsl_1_b%d_f%d' % (block, 0))
-        S = tf.keras.layers.dense(S, 1, activation=tf.nn.sigmoid,
+        S = tf.keras.layers.Dense(values, 16, activation=tf.nn.relu, name='gsl_1_b%d_f%d' % (block, 0))
+        S = tf.keras.layers.Dense(S, 1, activation=tf.nn.sigmoid,
                             name='gsl_2_b%d_f%d' % (block, 0))  # [batch_size, field_size, 1]
         S = tf.squeeze(S)  # [batch_size, field_size]
         vals, inds = tf.nn.top_k(S, k=k)
