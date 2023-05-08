@@ -257,7 +257,8 @@ class GraphFM():
             # loss
             if self.loss_type == "logloss":
                 self.out = tf.nn.sigmoid(self.out, name='pred')
-                self.loss = tf.keras.losses.log_loss(self.label, self.out)
+                self.loss_fn = tf.keras.losses.LogCosh()
+                self.loss = self.loss_fn(self.label, self.out)
             elif self.loss_type == "mse":
                 self.loss = tf.nn.l2_loss(tf.subtract(self.label, self.out))
 
