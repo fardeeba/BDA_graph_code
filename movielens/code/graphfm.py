@@ -245,7 +245,7 @@ class GraphFM():
 
             # ngcf form
             self.y_deep = tf.concat(h_list, axis=-1)
-            self.flat = tf.reduce_mean(self.y_deep, axis=1, keep_dims=False)
+            self.flat = tf.reduce_mean(self.y_deep, axis=1)
 
             self.out = tf.add(tf.matmul(self.flat, self.weights["prediction"]),
                               self.weights["prediction_bias"], name='logits')  # None * 1
