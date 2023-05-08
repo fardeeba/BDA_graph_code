@@ -191,7 +191,7 @@ class GraphFM():
             genre_value = tf.reshape(self.genre_value, shape=[-1, 6, 1])
             self.embeddings_m  = tf.multiply(self.embeddings_m, genre_value)
             self.embeddings_m = tf.reduce_sum(self.embeddings_m, axis=1) # None * d
-            self.embeddings_m = tf.div(self.embeddings_m, tf.reduce_sum(self.genre_value, axis=1, keep_dims=True)) # None * d
+            self.embeddings_m = tf.math.divide(self.embeddings_m, tf.reduce_sum(self.genre_value, axis=1, keep_dims=True)) # None * d
 
             #concatenate single-value field with multi-value field
             self.embeddings = tf.concat([self.embeddings, tf.expand_dims(self.embeddings_m, 1)], 1) # None * M * d
