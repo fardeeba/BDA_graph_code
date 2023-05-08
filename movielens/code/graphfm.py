@@ -316,7 +316,7 @@ class GraphFM():
 
         # embeddings
         weights["feature_embeddings"] = tf.Variable(
-            tf.random_normal([self.feature_size, self.embedding_size], 0.0, 0.01),
+            tf.random.normal([self.feature_size, self.embedding_size], 0.0, 0.01),
             name="feature_embeddings")  # feature_size(n) * d
 
         input_size = sum(self.block_shape)
