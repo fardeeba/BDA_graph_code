@@ -9,7 +9,6 @@ import tensorflow as tf
 from time import time
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import roc_auc_score, log_loss
-import tensorflow.contrib.layers.batch_norm as batch_norm
 # from tensorflow.contrib.layers.python.layers import batch_norm as batch_norm
 
 
@@ -324,9 +323,9 @@ class AutoInt():
         return weights
 
     def batch_norm_layer(self, x, train_phase, scope_bn):
-        bn_train = batch_norm(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
+        bn_train = tf.keras.layers.BatchNormalization(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
                 is_training=True, reuse=None, trainable=True, scope=scope_bn)
-        bn_inference = batch_norm(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
+        bn_inference = tf.keras.layers.BatchNormalization(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
                 is_training=False, reuse=True, trainable=True, scope=scope_bn)
         z = tf.cond(train_phase, lambda: bn_train, lambda: bn_inference)
         return z
