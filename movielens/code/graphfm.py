@@ -55,16 +55,16 @@ def gat_attention(queries,
         num_units = queries.get_shape().as_list[-1]
 
     # Linear projections
-    with tf.compat.v1.variable_scope()("att_blocks%d" % block):
+    with tf.compat.v1.variable_scope("att_blocks%d" % block):
         if field > 0: tf.get_variable_scope().reuse_variables()
         A = tf.layers.dense(values, num_heads, activation=tf.nn.relu,
                         name='att_b%d_f%d'% (block, 0))
-    with tf.compat.v1.variable_scope()("w_blocks%d" % block):
+    with tf.compat.v1.variable_scope("w_blocks%d" % block):
         # if field > 0: tf.get_variable_scope().reuse_variables()
         H = tf.layers.dense(values, num_units, activation=None, use_bias=False, name='w_b%d_f%d'% (block, field))
         # A = tf.layers.dense(H, num_heads, activation=tf.nn.relu, name='att_b%d_f%d'%(block, field))
     if has_residual:
-        with tf.compat.v1.variable_scope()("res_blocks%d" % block):
+        with tf.compat.v1.variable_scope("res_blocks%d" % block):
             # if field > 0: tf.get_variable_scope().reuse_variables()
             Q_res = tf.layers.dense(queries, num_units, activation=tf.nn.relu, name='res_b%d_f%d'% (block, field)) # [batch_size, 1, num_units]
 
@@ -73,7 +73,7 @@ def gat_attention(queries,
     H_ = tf.concat(tf.split(H, num_heads, axis=2), axis=0)  # [num_heads*batch_size, field_size, num_units/num_heads]
 
     # keep the top k nodes
-    with tf.compat.v1.variable_scope()("gsl_blocks%d" % block):
+    with tf.compat.v1.variable_scope("gsl_blocks%d" % block):
         if field > 0: tf.get_variable_scope().reuse_variables()
         S = tf.layers.dense(values, 16, activation=tf.nn.relu, name='gsl_1_b%d_f%d' % (block, 0))
         S = tf.layers.dense(S, 1, activation=tf.nn.sigmoid,
