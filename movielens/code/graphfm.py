@@ -275,18 +275,18 @@ class GraphFM():
             self.var2 = [tf.compat.v1.trainable_variables()[1]]    # self.var2 = [feature_bias]
 
             if self.optimizer_type == "adam":
-                self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learning_rate,
+                self.optimizer = tf.compat.v1.train.AdamOptimizer(learning_rate=self.learning_rate,
                                                     beta1=0.9, beta2=0.999, epsilon=1e-8).\
                                                     minimize(self.loss, global_step=self.global_step)
             elif self.optimizer_type == "adagrad":
-                self.optimizer = tf.train.AdagradOptimizer(learning_rate=self.learning_rate,
+                self.optimizer = tf.compat.v1.train.AdagradOptimizer(learning_rate=self.learning_rate,
                                                            initial_accumulator_value=1e-8).\
                                                            minimize(self.loss, global_step=self.global_step)
             elif self.optimizer_type == "gd":
-                self.optimizer = tf.train.GradientDescentOptimizer(learning_rate=self.learning_rate).\
+                self.optimizer = tf.compat.v1.train.GradientDescentOptimizer(learning_rate=self.learning_rate).\
                                                                    minimize(self.loss, global_step=self.global_step)
             elif self.optimizer_type == "momentum":
-                self.optimizer = tf.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.95).\
+                self.optimizer = tf.compat.v1.train.MomentumOptimizer(learning_rate=self.learning_rate, momentum=0.95).\
                                                             minimize(self.loss, global_step=self.global_step)
 
             # init
