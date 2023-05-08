@@ -9,7 +9,7 @@ import tensorflow as tf
 from time import time
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import roc_auc_score, log_loss
-import tf.contrib.layers.batch_norm as batch_norm
+import tensorflow.contrib.layers.batch_norm as batch_norm
 # from tensorflow.contrib.layers.python.layers import batch_norm as batch_norm
 
 
