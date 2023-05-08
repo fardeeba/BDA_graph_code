@@ -157,7 +157,7 @@ class GraphFM():
         self.graph = tf.Graph()
         with self.graph.as_default():
 
-            tf.set_random_seed(self.random_seed)
+            tf.random.set_seed(self.random_seed)
 
             # placeholder for single-value field.
             self.feat_index = tf.placeholder(tf.int32, shape=[None, None],
