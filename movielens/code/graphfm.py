@@ -160,22 +160,22 @@ class GraphFM():
             tf.random.set_seed(self.random_seed)
 
             # placeholder for single-value field.
-            self.feat_index = tf.placeholder(tf.int32, shape=[None, None],
+            self.feat_index = tf.compat.v1.placeholder(tf.int32, shape=[None, None],
                                                  name="feat_index")  # None * M-1
-            self.feat_value = tf.placeholder(tf.float32, shape=[None, None],
+            self.feat_value = tf.compat.v1.placeholder(tf.float32, shape=[None, None],
                                                  name="feat_value")  # None * M-1
 
             # placeholder for multi-value field. (movielens dataset genre field)
-            self.genre_index = tf.placeholder(tf.int32, shape=[None, None],
+            self.genre_index = tf.compat.v1.placeholder(tf.int32, shape=[None, None],
                                                  name="genre_index") # None * 6
-            self.genre_value = tf.placeholder(tf.float32, shape=[None, None],
+            self.genre_value = tf.compat.v1.placeholder(tf.float32, shape=[None, None],
                                                  name="genre_value") # None * 6
 
-            self.label = tf.placeholder(tf.float32, shape=[None, 1], name="label")  # None * 1
+            self.label = tf.compat.v1.placeholder(tf.float32, shape=[None, 1], name="label")  # None * 1
 
             # In our implementation, the shape of dropout_keep_prob is [3], used in 3 different places.
-            self.dropout_keep_prob = tf.placeholder(tf.float32, shape=[None], name="dropout_keep_prob")
-            self.train_phase = tf.placeholder(tf.bool, name="train_phase")
+            self.dropout_keep_prob = tf.compat.v1.placeholder(tf.float32, shape=[None], name="dropout_keep_prob")
+            self.train_phase = tf.compat.v1.placeholder(tf.bool, name="train_phase")
 
             self.weights = self._initialize_weights()
 
