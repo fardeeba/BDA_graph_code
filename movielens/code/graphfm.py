@@ -290,7 +290,7 @@ class GraphFM():
                                                             minimize(self.loss, global_step=self.global_step)
 
             # init
-            self.saver = tf.train.Saver(max_to_keep=5)
+            self.saver = tf.compat.v1.train.Saver(max_to_keep=5)
             init = tf.global_variables_initializer()
             self.sess = self._init_session()
             self.sess.run(init)
