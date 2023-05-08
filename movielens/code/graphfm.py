@@ -57,15 +57,16 @@ def gat_attention(queries,
     # Linear projections
     with tf.compat.v1.variable_scope("att_blocks%d" % block):
         if field > 0: tf.get_variable_scope().reuse_variables()
-        A = tf.keras.layers.Dense(values, num_heads, activation="relu")
+        A = tf.compat.v1.layers.dense(values, num_heads, activation=tf.nn.relu,
+                        name='att_b%d_f%d'% (block, 0))
     with tf.compat.v1.variable_scope("w_blocks%d" % block):
         # if field > 0: tf.get_variable_scope().reuse_variables()
-        H = tf.keras.layers.Dense(values, num_units, activation=None, use_bias=False)
-        # A = tf.keras.layers.Dense(H, num_heads, activation="relu", name='att_b%d_f%d'%(block, field))
+        H = tf.compat.v1.layers.dense(values, num_units, activation=None, use_bias=False, name='w_b%d_f%d'% (block, field))
+        # A = tf.compat.v1.layers.dense(H, num_heads, activation=tf.nn.relu, name='att_b%d_f%d'%(block, field))
     if has_residual:
         with tf.compat.v1.variable_scope("res_blocks%d" % block):
             # if field > 0: tf.get_variable_scope().reuse_variables()
-            Q_res = tf.keras.layers.Dense(queries, num_units, activation="relu") # [batch_size, 1, num_units]
+            Q_res = tf.compat.v1.layers.dense(queries, num_units, activation=tf.nn.relu, name='res_b%d_f%d'% (block, field)) # [batch_size, 1, num_units]
 
     # Split and concat
     A_ = tf.concat(tf.split(A, num_heads, axis=2), axis=0) # [num_heads*batch_size, field_size, 1]
@@ -74,8 +75,9 @@ def gat_attention(queries,
     # keep the top k nodes
     with tf.compat.v1.variable_scope("gsl_blocks%d" % block):
         if field > 0: tf.get_variable_scope().reuse_variables()
-        S = tf.keras.layers.Dense(values, 16, activation="relu")
-        S = tf.keras.layers.Dense(S, 1, activation=tf.nn.sigmoid)  # [batch_size, field_size, 1]
+        S = tf.compat.v1.layers.dense(values, 16, activation=tf.nn.relu, name='gsl_1_b%d_f%d' % (block, 0))
+        S = tf.compat.v1.layers.dense(S, 1, activation=tf.nn.sigmoid,
+                            name='gsl_2_b%d_f%d' % (block, 0))  # [batch_size, field_size, 1]
         S = tf.squeeze(S)  # [batch_size, field_size]
         vals, inds = tf.nn.top_k(S, k=k)
         kth = tf.reduce_min(vals, -1, keepdims=True)
@@ -90,7 +92,7 @@ def gat_attention(queries,
     weights = tf.nn.softmax(A_, axis=1)
 
     # Dropouts
-    weights = tf.keras.layers.dropout(weights, rate=1-dropout_keep_prob,
+    weights = tf.layers.dropout(weights, rate=1-dropout_keep_prob,
                                         training=tf.convert_to_tensor(is_training))
 
     # Weighted sum
@@ -104,7 +106,7 @@ def gat_attention(queries,
     if has_residual:
         outputs += Q_res
 
-    outputs = "relu"(outputs)
+    outputs = tf.nn.relu(outputs)
     # Normalize
     outputs = normalize(outputs)
 
@@ -202,7 +204,7 @@ class GraphFM():
                     self.y_dense = tf.add(tf.matmul(self.y_dense, self.weights["layer_%d" %i]), self.weights["bias_%d"%i]) # None * layer[i]
                     if self.batch_norm:
                         self.y_dense = self.batch_norm_layer(self.y_dense, train_phase=self.train_phase, scope_bn="bn_%d" %i)
-                    self.y_dense = "relu"(self.y_dense)
+                    self.y_dense = tf.nn.relu(self.y_dense)
                     self.y_dense = tf.nn.dropout(self.y_dense, self.dropout_keep_prob[2])
                 self.y_dense = tf.add(tf.matmul(self.y_dense, self.weights["prediction_dense"]),
                                       self.weights["prediction_bias_dense"], name='logits_dense')  # None * 1
