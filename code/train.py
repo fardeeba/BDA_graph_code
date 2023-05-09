@@ -136,7 +136,7 @@ if __name__ == "__main__":
     if args.data in ['Avazu', 'Wiki']:
         # Avazu does not have numerical features so we didn't scale the data.
         file_name = ['train_i.npy', 'train_x.npy', 'train_y.npy']
-    elif args.data in ['Criteo', 'KDD2012']:
+    elif args.data in ['criteo', 'KDD2012']:
         file_name = ['train_i.npy', 'train_x2.npy', 'train_y.npy']
     test_auc = []
     test_log = []
