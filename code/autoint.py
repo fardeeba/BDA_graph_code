@@ -9,7 +9,7 @@ import tensorflow as tf
 from time import time
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import roc_auc_score, log_loss
-from tensorflow.contrib.layers.python.layers import batch_norm as batch_norm
+# from tensorflow.contrib.layers.python.layers import batch_norm as batch_norm
 
 
 
@@ -53,7 +53,7 @@ def multihead_attention(queries,
                         has_residual=True):
 	
     if num_units is None:
-        num_units = queries.get_shape().as_list()[-1]
+        num_units = queries.get_shape().as_list[-1]
 
     # Linear projections
     Q = tf.layers.dense(queries, num_units, activation=tf.nn.relu)
@@ -80,6 +80,8 @@ def multihead_attention(queries,
     # Dropouts
     weights = tf.layers.dropout(weights, rate=1-dropout_keep_prob,
                                         training=tf.convert_to_tensor(is_training))
+    # weights = tf.layers.dropout(weights, rate=1 - dropout_keep_prob,
+    #                             training=is_training)
 
     # Weighted sum
     outputs = tf.matmul(weights, V_)
@@ -144,10 +146,18 @@ class AutoInt():
 
             tf.set_random_seed(self.random_seed)
 
+            # placeholder for single-value field.
             self.feat_index = tf.placeholder(tf.int32, shape=[None, None],
-                                                 name="feat_index")  # None * M
+                                                 name="feat_index")  # None * M-1
             self.feat_value = tf.placeholder(tf.float32, shape=[None, None],
-                                                 name="feat_value")  # None * M
+                                                 name="feat_value")  # None * M-1
+
+            # placeholder for multi-value field. (movielens dataset genre field)
+            self.genre_index = tf.placeholder(tf.int32, shape=[None, None],
+                                                 name="genre_index") # None * 6
+            self.genre_value = tf.placeholder(tf.float32, shape=[None, None],
+                                                 name="genre_value") # None * 6
+
             self.label = tf.placeholder(tf.float32, shape=[None, 1], name="label")  # None * 1
 
             # In our implementation, the shape of dropout_keep_prob is [3], used in 3 different places.
@@ -158,9 +168,20 @@ class AutoInt():
 
             # model
             self.embeddings = tf.nn.embedding_lookup(self.weights["feature_embeddings"],
-                                                             self.feat_index)  # None * M * d
-            feat_value = tf.reshape(self.feat_value, shape=[-1, self.field_size, 1])
-            self.embeddings = tf.multiply(self.embeddings, feat_value)      # None * M * d
+                                                             self.feat_index)  # None * M-1 * d
+            feat_value = tf.reshape(self.feat_value, shape=[-1, self.field_size-1, 1])
+            self.embeddings = tf.multiply(self.embeddings, feat_value)      # None * M-1 * d
+
+            # for multi-value field
+            self.embeddings_m = tf.nn.embedding_lookup(self.weights["feature_embeddings"],
+                                                             self.genre_index) # None * 6 * d
+            genre_value = tf.reshape(self.genre_value, shape=[-1, 6, 1])
+            self.embeddings_m  = tf.multiply(self.embeddings_m, genre_value)
+            self.embeddings_m = tf.reduce_sum(self.embeddings_m, axis=1) # None * d 
+            self.embeddings_m = tf.div(self.embeddings_m, tf.reduce_sum(self.genre_value, axis=1, keep_dims=True)) # None * d
+
+            #concatenate single-value field with multi-value field
+            self.embeddings = tf.concat([self.embeddings, tf.expand_dims(self.embeddings_m, 1)], 1) # None * M * d
             self.embeddings = tf.nn.dropout(self.embeddings, self.dropout_keep_prob[1]) # None * M * d
 
             # joint training with feedforward nn
@@ -302,34 +323,40 @@ class AutoInt():
         return weights
 
     def batch_norm_layer(self, x, train_phase, scope_bn):
-        bn_train = batch_norm(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
+        bn_train = tf.keras.layers.BatchNormalization(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
                 is_training=True, reuse=None, trainable=True, scope=scope_bn)
-        bn_inference = batch_norm(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
+        bn_inference = tf.keras.layers.BatchNormalization(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
                 is_training=False, reuse=True, trainable=True, scope=scope_bn)
         z = tf.cond(train_phase, lambda: bn_train, lambda: bn_inference)
         return z
 
     
-    def get_batch(self, Xi, Xv, y, batch_size, index):
+    def get_batch(self, Xi, Xv, Xi_genre, Xv_genre, y, batch_size, index):
         start = index * batch_size
         end = (index+1) * batch_size
         end = end if end < len(y) else len(y)
-        return Xi[start:end], Xv[start:end], [[y_] for y_ in y[start:end]]
+        return Xi[start:end], Xv[start:end], Xi_genre[start:end], Xv_genre[start:end], [[y_] for y_ in y[start:end]]
 
 
     # shuffle three lists simutaneously
-    def shuffle_in_unison_scary(self, a, b, c):
+    def shuffle_in_unison_scary(self, a, b, c, d, e):
         rng_state = np.random.get_state()
         np.random.shuffle(a)
         np.random.set_state(rng_state)
         np.random.shuffle(b)
         np.random.set_state(rng_state)
         np.random.shuffle(c)
+        np.random.set_state(rng_state)
+        np.random.shuffle(d)
+        np.random.set_state(rng_state)
+        np.random.shuffle(e)                
 
 
-    def fit_on_batch(self, Xi, Xv, y):
+    def fit_on_batch(self, Xi, Xv, Xi_genre, Xv_genre, y):
         feed_dict = {self.feat_index: Xi,
                      self.feat_value: Xv,
+                     self.genre_index: Xi_genre,
+                     self.genre_value: Xv_genre,
                      self.label: y,
                      self.dropout_keep_prob: self.drop_keep_prob,
                      self.train_phase: True}
@@ -338,47 +365,46 @@ class AutoInt():
 
     # Since the train data is very large, they can not be fit into the memory at the same time.
     # We separate the whole train data into several files and call "fit_once" for each file.
-    def fit_once(self, Xi_train, Xv_train, y_train,
-                 epoch, file_count, Xi_valid=None, 
-	             Xv_valid=None, y_valid=None,
+    def fit_once(self, Xi_train, Xv_train, Xi_train_genre, Xv_train_genre, y_train,
+                 epoch, Xi_valid=None, 
+	             Xv_valid=None, Xi_valid_genre=None, Xv_valid_genre=None, y_valid=None,
                  early_stopping=False):
         
         has_valid = Xv_valid is not None
         last_step = 0
         t1 = time()
-        self.shuffle_in_unison_scary(Xi_train, Xv_train, y_train)
+        self.shuffle_in_unison_scary(Xi_train, Xv_train, Xi_train_genre, Xv_train_genre, y_train)
         total_batch = int(len(y_train) / self.batch_size)
         for i in range(total_batch):
-            Xi_batch, Xv_batch, y_batch = self.get_batch(Xi_train, Xv_train, y_train, self.batch_size, i)
-            step, loss = self.fit_on_batch(Xi_batch, Xv_batch, y_batch)
+            Xi_batch, Xv_batch, Xi_batch_genre, Xv_batch_genre, y_batch = self.get_batch(Xi_train, Xv_train, Xi_train_genre, Xv_train_genre, y_train, self.batch_size, i)
+            step, loss = self.fit_on_batch(Xi_batch, Xv_batch, Xi_batch_genre, Xv_batch_genre, y_batch)
             last_step = step
 
         # evaluate training and validation datasets
-        train_result, train_loss = self.evaluate(Xi_train, Xv_train, y_train)
+        train_result, train_loss = self.evaluate(Xi_train, Xv_train, Xi_train_genre, Xv_train_genre, y_train)
         self.train_result.append(train_result)
         self.train_loss.append(train_loss)
         if has_valid:
-            valid_result, valid_loss = self.evaluate(Xi_valid, Xv_valid, y_valid)
+            valid_result, valid_loss = self.evaluate(Xi_valid, Xv_valid, Xi_valid_genre, Xv_valid_genre, y_valid)
             self.valid_result.append(valid_result)
             self.valid_loss.append(valid_loss)
             if valid_loss < self.best_loss and self.is_save == True:
                 old_loss = self.best_loss
                 self.best_loss = valid_loss
                 self.saver.save(self.sess, self.save_path + 'model.ckpt',global_step=last_step)
-                print("[%d-%d] model saved!. Valid loss is improved from %.4f to %.4f" 
-                      % (epoch, file_count, old_loss, self.best_loss))
+                print("[%d] model saved!. Valid loss is improved from %.4f to %.4f" 
+                      % (epoch, old_loss, self.best_loss))
 
-        if self.verbose > 0 and ((epoch-1)*9 + file_count) % self.verbose == 0:
+        if self.verbose > 0 and ((epoch-1)*9) % self.verbose == 0:
             if has_valid:
-                print("[%d-%d] train-result=%.4f, train-logloss=%.4f, valid-result=%.4f, valid-logloss=%.4f [%.1f s]" % (epoch, file_count, train_result, train_loss, valid_result, valid_loss, time() - t1))
+                print("[%d] train-result=%.4f, train-logloss=%.4f, valid-result=%.4f, valid-logloss=%.4f [%.1f s]" % (epoch, train_result, train_loss, valid_result, valid_loss, time() - t1))
             else:
-                print("[%d-%d] train-result=%.4f [%.1f s]" \
-                    % (epoch, file_count, train_result, time() - t1))
+                print("[%d] train-result=%.4f [%.1f s]" \
+                    % (epoch, train_result, time() - t1))
         if has_valid and early_stopping and self.training_termination(self.valid_loss):
             return False
         else:
             return True
-
 
 
     def training_termination(self, valid_result):
@@ -398,7 +424,7 @@ class AutoInt():
         return False
 
 
-    def predict(self, Xi, Xv):
+    def predict(self, Xi, Xv, Xi_genre, Xv_genre):
         """
         :param Xi: list of list of feature indices of each sample in the dataset
         :param Xv: list of list of feature values of each sample in the dataset
@@ -407,12 +433,14 @@ class AutoInt():
         # dummy y
         dummy_y = [1] * len(Xi)
         batch_index = 0
-        Xi_batch, Xv_batch, y_batch = self.get_batch(Xi, Xv, dummy_y, self.batch_size, batch_index)
+        Xi_batch, Xv_batch, Xi_batch_genre, Xv_batch_genre, y_batch = self.get_batch(Xi, Xv, Xi_genre, Xv_genre, dummy_y, self.batch_size, batch_index)
         y_pred = None
         while len(Xi_batch) > 0:
             num_batch = len(y_batch)
             feed_dict = {self.feat_index: Xi_batch,
                          self.feat_value: Xv_batch,
+                         self.genre_index: Xi_batch_genre,
+                         self.genre_value: Xv_batch_genre,
                          self.label: y_batch,
                          self.dropout_keep_prob: [1.0] * len(self.drop_keep_prob),
                          self.train_phase: False}
@@ -424,19 +452,19 @@ class AutoInt():
                 y_pred = np.concatenate((y_pred, np.reshape(batch_out, (num_batch,))))
 
             batch_index += 1
-            Xi_batch, Xv_batch, y_batch = self.get_batch(Xi, Xv, dummy_y, self.batch_size, batch_index)
+            Xi_batch, Xv_batch, Xi_batch_genre, Xv_batch_genre, y_batch = self.get_batch(Xi, Xv, Xi_genre, Xv_genre, dummy_y, self.batch_size, batch_index)
 
         return y_pred
 
 
-    def evaluate(self, Xi, Xv, y):
+    def evaluate(self, Xi, Xv, Xi_genre, Xv_genre, y):
         """
         :param Xi: list of list of feature indices of each sample in the dataset
         :param Xv: list of list of feature values of each sample in the dataset
         :param y: label of each sample in the dataset
         :return: metric of the evaluation
         """
-        y_pred = self.predict(Xi, Xv)
+        y_pred = self.predict(Xi, Xv, Xi_genre, Xv_genre)
         y_pred = np.clip(y_pred,1e-6,1-1e-6)
         return self.eval_metric(y, y_pred), log_loss(y, y_pred)
 

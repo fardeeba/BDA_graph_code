@@ -10,7 +10,6 @@ from time import time
 from functools import partial
 from sklearn.base import BaseEstimator, TransformerMixin
 from sklearn.metrics import roc_auc_score, log_loss
-from tensorflow.contrib.layers.python.layers import batch_norm as batch_norm
 
 '''
 The following two functions are adapted from kyubyong park's implementation of transformer
@@ -65,10 +64,18 @@ class HOAFM():
 
             tf.set_random_seed(self.random_seed)
 
+            # placeholder for single-value field.
             self.feat_index = tf.placeholder(tf.int32, shape=[None, None],
-                                             name="feat_index")  # None * M
+                                             name="feat_index")  # None * M-1
             self.feat_value = tf.placeholder(tf.float32, shape=[None, None],
-                                             name="feat_value")  # None * M
+                                             name="feat_value")  # None * M-1
+
+            # placeholder for multi-value field. (movielens dataset genre field)
+            self.genre_index = tf.placeholder(tf.int32, shape=[None, None],
+                                              name="genre_index")  # None * 6
+            self.genre_value = tf.placeholder(tf.float32, shape=[None, None],
+                                              name="genre_value")  # None * 6
+
             self.label = tf.placeholder(tf.float32, shape=[None, 1], name="label")  # None * 1
 
             # In our implementation, the shape of dropout_keep_prob is [3], used in 3 different places.
@@ -79,9 +86,21 @@ class HOAFM():
 
             # model
             self.embeddings = tf.nn.embedding_lookup(self.weights["feature_embeddings"],
-                                                     self.feat_index)  # None * M * d
-            feat_value = tf.reshape(self.feat_value, shape=[-1, self.field_size, 1])
-            self.embeddings = tf.multiply(self.embeddings, feat_value)  # None * M * d
+                                                     self.feat_index)  # None * M-1 * d
+            feat_value = tf.reshape(self.feat_value, shape=[-1, self.field_size - 1, 1])
+            self.embeddings = tf.multiply(self.embeddings, feat_value)  # None * M-1 * d
+
+            # for multi-value field
+            self.embeddings_m = tf.nn.embedding_lookup(self.weights["feature_embeddings"],
+                                                       self.genre_index)  # None * 6 * d
+            genre_value = tf.reshape(self.genre_value, shape=[-1, 6, 1])
+            self.embeddings_m = tf.multiply(self.embeddings_m, genre_value)
+            self.embeddings_m = tf.reduce_sum(self.embeddings_m, axis=1)  # None * d
+            self.embeddings_m = tf.div(self.embeddings_m,
+                                       tf.reduce_sum(self.genre_value, axis=1, keep_dims=True))  # None * d
+
+            # concatenate single-value field with multi-value field
+            self.embeddings = tf.concat([self.embeddings, tf.expand_dims(self.embeddings_m, 1)], 1)  # None * M * d
             self.embeddings = tf.nn.dropout(self.embeddings, self.dropout_keep_prob[1])  # None * M * d
 
             # joint training with feedforward nn
@@ -94,7 +113,7 @@ class HOAFM():
                         self.y_dense = self.batch_norm_layer(self.y_dense, train_phase=self.train_phase,
                                                              scope_bn="bn_%d" % i)
                     self.y_dense = tf.nn.relu(self.y_dense)
-                    self.y_dense = tf.nn.dropout(self.y_dense, self.dropout_keep_prob[2])
+                    self.y_dense = tf.nn.dropout(self.y_dense, self.dropout_keep_prob[1])
                 self.y_dense = tf.add(tf.matmul(self.y_dense, self.weights["prediction_dense"]),
                                       self.weights["prediction_bias_dense"], name='logits_dense')  # None * 1
 
@@ -279,9 +298,9 @@ class HOAFM():
         return weights
 
     def batch_norm_layer(self, x, train_phase, scope_bn):
-        bn_train = batch_norm(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
+        bn_train = tf.keras.layers.BatchNormalization(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
                               is_training=True, reuse=None, trainable=True, scope=scope_bn)
-        bn_inference = batch_norm(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
+        bn_inference = tf.keras.layers.BatchNormalization(x, decay=self.batch_norm_decay, center=True, scale=True, updates_collections=None,
                                   is_training=False, reuse=True, trainable=True, scope=scope_bn)
         z = tf.cond(train_phase, lambda: bn_train, lambda: bn_inference)
         return z
