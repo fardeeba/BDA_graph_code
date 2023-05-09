@@ -33,7 +33,7 @@ def normalize(inputs, epsilon=1e-8):
     inputs_shape = inputs.get_shape()
     params_shape = inputs_shape[-1:]
 
-    mean, variance = tf.nn.moments(inputs, [-1], keep_dims=True)
+    mean, variance = tf.nn.moments(inputs, [-1])
     beta = tf.Variable(tf.zeros(params_shape))
     gamma = tf.Variable(tf.ones(params_shape))
     normalized = (inputs - mean) / ((variance + epsilon) ** (.5))
@@ -234,7 +234,7 @@ class GraphFM():
             # mean_pooling of all the layer
             # ngcf form
             self.y_deep = tf.concat(h_list, axis=-1)
-            self.flat = tf.reduce_mean(self.y_deep, axis=1, keep_dims=False)
+            self.flat = tf.reduce_mean(self.y_deep, axis=1)
 
             self.out = tf.add(tf.matmul(self.flat, self.weights["prediction"]),
                               self.weights["prediction_bias"], name='logits')  # None * 1
