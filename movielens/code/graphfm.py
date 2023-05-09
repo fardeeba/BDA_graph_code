@@ -306,7 +306,7 @@ class GraphFM():
 
 
     def _init_session(self):
-        config = tf.ConfigProto(allow_soft_placement=True)
+        config = tf.compat.v1.ConfigProto(allow_soft_placement=True)
         config.gpu_options.allow_growth = True
         return tf.Session(config=config)
 
