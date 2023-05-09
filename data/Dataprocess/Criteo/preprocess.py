@@ -11,7 +11,7 @@ f_train_value = open(config.DATA_PATH + 'train_x.txt','w')
 f_train_index = open(config.DATA_PATH + 'train_i.txt','w')
 f_train_label = open(config.DATA_PATH + 'train_y.txt','w')
 
-for i in range(39):
+for i in range(38):
     dic[i] = {}
 
 cnt_train = 0
@@ -26,7 +26,7 @@ for line in f1:
     #if cnt_train > limits:
     #	break
     split = line.strip('\n').split('\t')
-    # 0-label, 1-13 numerical, 14-39 category 
+    # 0-label, 1-13 numerical, 14-38 category 
     for i in range(13,38):
         if split[i+1] not in dic[i]:
         # [1, 0] 1 is the index for those whose appear times <= 10   0 indicates the appear times
@@ -40,7 +40,7 @@ print('total entries :%d\n' % (cnt_train - 1))
 
 # calculate number of category features of every dimension
 kinds = [13]
-for i in range(13,39):
+for i in range(13,38):
     kinds.append(index[i-13])
 print('number of dimensions : %d' % (len(kinds)-1))
 print(kinds)
@@ -60,15 +60,15 @@ for line in f1:
         print('now train cnt : %d\n' % cnt_train)
     #if cnt_train > limits:
     #	break
-    entry = ['0'] * 39
-    index = [None] * 39
+    entry = ['0'] * 38
+    index = [None] * 38
     split = line.strip('\n').split('\t')
     label = str(split[0])
     for i in range(13):
         if split[i+1] != '':
             entry[i] = (split[i+1])
         index[i] = (i+1)
-    for i in range(13,39):
+    for i in range(13,38):
         if split[i+1] != '':
             entry[i] = '1'
         index[i] = (dic[i][split[i+1]][0])
