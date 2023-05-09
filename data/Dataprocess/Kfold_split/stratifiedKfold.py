@@ -14,10 +14,10 @@ Column = 4
 
 def _load_data(_nrows=None, debug = False):
 
-    train_x = pd.read_csv(config.TRAIN_X,header=None,sep=',',nrows=_nrows, dtype=np.float)
+    train_x = pd.read_csv(config.TRAIN_X,header=None,sep=',',nrows=_nrows)
     train_y = pd.read_csv(config.TRAIN_Y,header=None,sep=',',nrows=_nrows, dtype=np.int32)
 
-
+    train_x = train_x.astype(float)
     train_x = train_x.values
     train_y = train_y.values.reshape([-1])
     
