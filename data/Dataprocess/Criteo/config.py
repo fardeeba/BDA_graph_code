@@ -1,2 +1,2 @@
-DATA_PATH = '/kaggle/input/criteo-dataset/'
-SOURCE_DATA = '/kaggle/input/criteo-dataset/dac/train.txt'
+DATA_PATH = '/kaggle/working/dataset/criteo/'
+SOURCE_DATA = '/kaggle/working/dataset/criteo/train.txt'
