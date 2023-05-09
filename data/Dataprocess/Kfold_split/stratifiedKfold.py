@@ -14,25 +14,12 @@ Column = 4
 
 def _load_data(_nrows=None, debug = False):
 
-    split_x = []
-    for line in config.TRAIN_X:
-        tst = line.strip('\n').split(',')
-        split_x.append([float(i) for i in tst])
-
-    split_y = []
-    for line in config.TRAIN_Y:
-        tst = line.strip('\n').split(',')
-        split_y.append([float(i) for i in tst])
-
-    print(split_x)
-    print(split_y)
-
-    # train_x = pd.read_csv(config.TRAIN_X,header=None,sep=',',nrows=_nrows, dtype=np.float)
-    # train_y = pd.read_csv(config.TRAIN_Y,header=None,sep=',',nrows=_nrows, dtype=np.int32)
+    train_x = pd.read_csv(config.TRAIN_X,header=None,sep=' ',nrows=_nrows, dtype=np.float)
+    train_y = pd.read_csv(config.TRAIN_Y,header=None,sep=' ',nrows=_nrows, dtype=np.int32)
 
 
-    train_x = pd.DataFrame(split_x)
-    train_y = pd.DataFrame(split_y)
+    train_x = train_x.values
+    train_y = train_y.values.reshape([-1])
     
 
     print('data loading done!')

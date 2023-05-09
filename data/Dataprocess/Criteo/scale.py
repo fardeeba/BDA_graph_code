@@ -14,7 +14,7 @@ def scale_each_fold():
         data = np.load(config.DATA_PATH + 'part'+str(i)+'/train_x.npy')
         part = data[:,0:13]
         for j in range(part.shape[0]):
-            if j % 10 ==0:
+            if j % 100000 ==0:
                 print(j)
             part[j] = list(map(scale, part[j]))
         np.save(config.DATA_PATH + 'part' + str(i) + '/train_x2.npy', data)   

@@ -21,12 +21,11 @@ cnt_train = 0
 index = [1] * 26
 for line in f1:
     cnt_train +=1
-    if cnt_train % 10 ==0:
+    if cnt_train % 100000 ==0:
         print('now train cnt : %d\n' % cnt_train)
     #if cnt_train > limits:
     #	break
-    split = line.strip('\n').split(',')
-    # print("length of split: ",len(split))
+    split = line.strip('\n').split('\t')
     # 0-label, 1-13 numerical, 14-39 category 
     for i in range(13,39):
         if split[i+1] not in dic[i]:
@@ -57,14 +56,13 @@ cnt_train = 0
 print('remake training data...\n')
 for line in f1:
     cnt_train +=1
-    if cnt_train % 10 ==0:
+    if cnt_train % 100000 ==0:
         print('now train cnt : %d\n' % cnt_train)
     #if cnt_train > limits:
     #	break
     entry = ['0'] * 39
     index = [None] * 39
-    split = line.strip('\n').split(',')
-    # print("len of split: ",len(split))
+    split = line.strip('\n').split('\t')
     label = str(split[0])
     for i in range(13):
         if split[i+1] != '':
