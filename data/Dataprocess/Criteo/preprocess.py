@@ -26,6 +26,7 @@ for line in f1:
     #if cnt_train > limits:
     #	break
     split = line.strip('\n').split('\t')
+    print("length of split: ",len(split))
     # 0-label, 1-13 numerical, 14-38 category 
     for i in range(13,38):
         if split[i+1] not in dic[i]:
@@ -63,6 +64,7 @@ for line in f1:
     entry = ['0'] * 38
     index = [None] * 38
     split = line.strip('\n').split('\t')
+    print("len of split: ",len(split))
     label = str(split[0])
     for i in range(13):
         if split[i+1] != '':
