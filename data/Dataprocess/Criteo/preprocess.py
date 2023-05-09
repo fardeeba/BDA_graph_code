@@ -25,7 +25,7 @@ for line in f1:
         print('now train cnt : %d\n' % cnt_train)
     #if cnt_train > limits:
     #	break
-    split = line.strip('\n').split('\t')
+    split = line.strip('\n').split(',')
     print("length of split: ",len(split))
     # 0-label, 1-13 numerical, 14-38 category 
     for i in range(13,38):
@@ -63,7 +63,7 @@ for line in f1:
     #	break
     entry = ['0'] * 38
     index = [None] * 38
-    split = line.strip('\n').split('\t')
+    split = line.strip('\n').split(',')
     print("len of split: ",len(split))
     label = str(split[0])
     for i in range(13):
