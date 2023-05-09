@@ -27,7 +27,7 @@ for line in f1:
     #	break
     split = line.strip('\n').split('\t')
     # 0-label, 1-13 numerical, 14-39 category 
-    for i in range(13,39):
+    for i in range(13,38):
         if split[i+1] not in dic[i]:
         # [1, 0] 1 is the index for those whose appear times <= 10   0 indicates the appear times
             dic[i][split[i+1]] = [1,0]  
