@@ -21,7 +21,7 @@ cnt_train = 0
 index = [1] * 26
 for line in f1:
     cnt_train +=1
-    if cnt_train % 100000 ==0:
+    if cnt_train % 1000 ==0:
         print('now train cnt : %d\n' % cnt_train)
     #if cnt_train > limits:
     #	break
