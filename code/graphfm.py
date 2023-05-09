@@ -95,8 +95,8 @@ def gat_attention(queries,
     weights = tf.nn.softmax(A_, axis=1)
 
     # Dropouts
-    weights = tf.keras.layers.dropout(weights, rate=1-dropout_keep_prob,
-                                        training=tf.convert_to_tensor(is_training))
+    # weights = tf.keras.layers.dropout(weights, rate=1-dropout_keep_prob,
+    #                                     training=tf.convert_to_tensor(is_training))
 
     # Weighted sum
     outputs = tf.multiply(weights, H_) # [num_heads*batch_size, field_size, num_units/num_heads]
