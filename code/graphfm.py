@@ -278,7 +278,7 @@ class GraphFM():
                     minimize(self.loss, global_step=self.global_step)
 
             # init
-            self.saver = tf.compat.v1.train.Saver(max_to_keep=5)
+            # self.saver = tf.compat.v1.train.Saver(max_to_keep=5)
             init = tf.compat.v1.global_variables_initializer()
             self.sess = self._init_session()
             self.sess.run(init)
@@ -400,7 +400,7 @@ class GraphFM():
             if valid_loss < self.best_loss and self.is_save == True:
                 old_loss = self.best_loss
                 self.best_loss = valid_loss
-                self.saver.save(self.sess, self.save_path + 'model.ckpt', global_step=last_step)
+                # self.saver.save(self.sess, self.save_path + 'model.ckpt', global_step=last_step)
                 print("[%d-%d] model saved!. Valid loss is improved from %.4f to %.4f"
                       % (epoch, file_count, old_loss, self.best_loss))
 
@@ -529,6 +529,6 @@ class GraphFM():
             save_path = self.save_path
         ckpt = tf.train.get_checkpoint_state(save_path)
         if ckpt and ckpt.model_checkpoint_path:
-            self.saver.restore(self.sess, ckpt.model_checkpoint_path)
+            # self.saver.restore(self.sess, ckpt.model_checkpoint_path)
             if self.verbose > 0:
                 print("restored from %s" % (save_path))
