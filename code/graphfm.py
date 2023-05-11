@@ -378,6 +378,11 @@ class GraphFM():
                  epoch, file_count, Xi_valid=None,
                  Xv_valid=None, y_valid=None,
                  early_stopping=False):
+        
+        train_auc_sum = 0
+        valid_auc_sum = 0
+        train_loss_sum = 0
+        valid_loss_sum = 0
 
         has_valid = Xv_valid is not None
         last_step = 0
@@ -391,10 +396,14 @@ class GraphFM():
 
         # evaluate training and validation datasets
         train_result, train_loss = self.evaluate(Xi_train, Xv_train, y_train)
+        train_auc_sum += train_result
+        train_loss_sum += train_loss
         self.train_result.append(train_result)
         self.train_loss.append(train_loss)
         if has_valid:
             valid_result, valid_loss = self.evaluate(Xi_valid, Xv_valid, y_valid)
+            valid_auc_sum += valid_result
+            valid_loss_sum += valid_loss
             self.valid_result.append(valid_result)
             self.valid_loss.append(valid_loss)
             if valid_loss < self.best_loss and self.is_save == True:
@@ -412,6 +421,10 @@ class GraphFM():
             else:
                 print("[%d-%d] train-result=%.4f [%.1f s]" \
                       % (epoch, file_count, train_result, time() - t1))
+                print("epoch train auc: ",(train_auc_sum/len(self.train_result)))
+                print("epoch train loss: ",(train_loss_sum/len(self.train_loss)))
+                print("epoch valid auc: ",(valid_auc_sum/len(self.valid_result)))
+                print("epoch valid loss: ",(valid_loss_sum/len(self.valid_loss)))
         if has_valid and early_stopping and self.training_termination(self.valid_loss):
             return False
         else:

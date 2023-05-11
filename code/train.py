@@ -95,7 +95,6 @@ def _run_(args, file_name, run_cnt):
     for k in range(model.epoch):
         if not is_continue:
             print('early stopping at epoch %d' % (k+1))
-
             break
         file_count = 0
         time_epoch = 0
