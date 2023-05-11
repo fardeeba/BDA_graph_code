@@ -421,14 +421,11 @@ class GraphFM():
             else:
                 print("[%d-%d] train-result=%.4f [%.1f s]" \
                       % (epoch, file_count, train_result, time() - t1))
-                print("epoch train auc: ",(train_auc_sum/len(self.train_result)))
-                print("epoch train loss: ",(train_loss_sum/len(self.train_loss)))
-                print("epoch valid auc: ",(valid_auc_sum/len(self.valid_result)))
-                print("epoch valid loss: ",(valid_loss_sum/len(self.valid_loss)))
+        
         if has_valid and early_stopping and self.training_termination(self.valid_loss):
-            return False
+            return False, file_count, train_result, train_loss, valid_result, valid_loss
         else:
-            return True
+            return True, file_count, train_result, train_loss, valid_result, valid_loss
 
     def training_termination(self, valid_result):
         if len(valid_result) > 5:

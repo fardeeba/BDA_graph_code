@@ -98,6 +98,11 @@ def _run_(args, file_name, run_cnt):
             break
         file_count = 0
         time_epoch = 0
+        counter = 0
+        train_acc = 0
+        train_losses = 0
+        valid_acc = 0
+        valid_losses = 0
         for j in range(3, 11):
             if not is_continue:
                 print('early stopping at epoch %d file %d' % (k+1, j))
@@ -109,11 +114,16 @@ def _run_(args, file_name, run_cnt):
 
             print("epoch %d, file %d" %(k+1, j))
             t1 = time()
-            is_continue = model.fit_once(Xi_train, Xv_train, y_train, k+1, file_count,
+            is_continue, counter, train_acc, train_losses, valid_acc, valid_losses = model.fit_once(Xi_train, Xv_train, y_train, k+1, file_count,
                       Xi_valid, Xv_valid, y_valid, early_stopping=True)
             time_epoch += time() - t1
+            
 
         print("epoch %d, time %d" % (k+1, time_epoch))
+        print("epoch train auc: ",(train_acc/counter))
+        print("epoch train loss: ",(train_losses/counter))
+        print("epoch valid auc: ",(valid_acc/counter))
+        print("epoch valid loss: ",(valid_losses/counter))
 
 
     # print('start testing!...')
