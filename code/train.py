@@ -90,10 +90,12 @@ def _run_(args, file_name, run_cnt):
     Xv_valid = np.load(path_prefix + '/part2/' + file_name[1])
     y_valid = np.load(path_prefix + '/part2/' + file_name[2])
 
+
     is_continue = True
     for k in range(model.epoch):
         if not is_continue:
             print('early stopping at epoch %d' % (k+1))
+
             break
         file_count = 0
         time_epoch = 0
@@ -115,19 +117,19 @@ def _run_(args, file_name, run_cnt):
         print("epoch %d, time %d" % (k+1, time_epoch))
 
 
-    print('start testing!...')
-    Xi_test = np.load(path_prefix + '/part1/' + file_name[0])
-    Xv_test = np.load(path_prefix + '/part1/' + file_name[1])
-    y_test = np.load(path_prefix + '/part1/' + file_name[2])
+    # print('start testing!...')
+    # Xi_test = np.load(path_prefix + '/part1/' + file_name[0])
+    # Xv_test = np.load(path_prefix + '/part1/' + file_name[1])
+    # y_test = np.load(path_prefix + '/part1/' + file_name[2])
 
-    if args.is_save == True: model.restore()
+    # if args.is_save == True: model.restore()
 
-    test_result, test_loss = model.evaluate(Xi_test, Xv_test, y_test)
-    print("test-result = %.4lf, test-logloss = %.4lf" % (test_result, test_loss))
+    # test_result, test_loss = model.evaluate(Xi_test, Xv_test, y_test)
+    # print("test-result = %.4lf, test-logloss = %.4lf" % (test_result, test_loss))
 
-    visualization = model.visualize(Xi_test, Xv_test, y_test)
+    # visualization = model.visualize(Xi_test, Xv_test, y_test)
 
-    return test_result, test_loss
+    return
 
 if __name__ == "__main__":
     args = parse_args()
@@ -138,16 +140,14 @@ if __name__ == "__main__":
         file_name = ['train_i.npy', 'train_x.npy', 'train_y.npy']
     elif args.data in ['criteo', 'KDD2012']:
         file_name = ['train_i.npy', 'train_x2.npy', 'train_y.npy']
-    test_auc = []
-    test_log = []
 
     print('run time : %d' % args.run_times)
     for i in range(1, args.run_times + 1):
-        test_result, test_loss = _run_(args, file_name, i)
-        test_auc.append(test_result)
-        test_log.append(test_loss)
-    print('test_auc', test_auc)
-    print('test_log_loss', test_log)
-    print('avg_auc', sum(test_auc)/len(test_auc))
-    print('avg_log_loss', sum(test_log)/len(test_log))
+        _run_(args, file_name, i)
+        # test_auc.append(test_result)
+        # test_log.append(test_loss)
+    # print('test_auc', test_auc)
+    # print('test_log_loss', test_log)
+    # print('avg_auc', sum(test_auc)/len(test_auc))
+    # print('avg_log_loss', sum(test_log)/len(test_log))
 
