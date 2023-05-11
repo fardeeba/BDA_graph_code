@@ -90,6 +90,10 @@ def _run_(args, file_name, run_cnt):
     Xv_valid = np.load(path_prefix + '/part2/' + file_name[1])
     y_valid = np.load(path_prefix + '/part2/' + file_name[2])
 
+    train_auc = []
+    valid_auc = []
+    train_losss = []
+    valid_losss = []
 
     is_continue = True
     for k in range(model.epoch):
@@ -117,13 +121,16 @@ def _run_(args, file_name, run_cnt):
             is_continue, counter, train_acc, train_losses, valid_acc, valid_losses = model.fit_once(Xi_train, Xv_train, y_train, k+1, file_count,
                       Xi_valid, Xv_valid, y_valid, early_stopping=True)
             time_epoch += time() - t1
-            
-
+        
+        train_auc.append(((train_acc/counter)*100))
+        valid_auc.append(((valid_acc/counter)*100))
+        train_losss.append(((train_losses/counter)*100))
+        valid_losss.append(((valid_losses/counter)*100))
         print("epoch %d, time %d" % (k+1, time_epoch))
-        print("epoch train auc: ",(train_acc/counter))
-        print("epoch train loss: ",(train_losses/counter))
-        print("epoch valid auc: ",(valid_acc/counter))
-        print("epoch valid loss: ",(valid_losses/counter))
+        print("train auc: ", train_auc)
+        print("train loss: ",train_losss)
+        print("valid auc: ",valid_auc)
+        print("valid loss: ",valid_losss)
 
 
     # print('start testing!...')
