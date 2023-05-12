@@ -6,9 +6,7 @@ from sklearn.metrics import make_scorer
 from sklearn.model_selection import StratifiedKFold
 from time import time
 from .autoint import AutoInt
-from .fignn import FiGNN
 from .graphfm import GraphFM
-from .InterHAt import InterHAt
 import argparse
 import os
 
@@ -78,12 +76,8 @@ def _run_(args, file_name, run_cnt):
     # test: file1, valid: file2, train: file3-10
     if args.model_type == 'AutoInt':
         model = AutoInt(args=args, feature_size=feature_size, run_cnt=run_cnt)
-    elif args.model_type == 'FiGNN':
-        model = FiGNN(args=args, feature_size=feature_size, run_cnt=run_cnt)
     elif args.model_type == 'GraphFM':
         model = GraphFM(args=args, feature_size=feature_size, run_cnt=run_cnt)
-    elif args.model_type == 'InterHAt':
-        model = InterHAt(args=args, feature_size=feature_size, run_cnt=run_cnt)
 
 
     Xi_valid = np.load(path_prefix + '/part2/' + file_name[0])
@@ -151,10 +145,10 @@ if __name__ == "__main__":
     args = parse_args()
     print(args.__dict__)
     print('**************')
-    if args.data in ['Avazu', 'Wiki']:
+    if args.data in ['Avazu']:
         # Avazu does not have numerical features so we didn't scale the data.
         file_name = ['train_i.npy', 'train_x.npy', 'train_y.npy']
-    elif args.data in ['criteo', 'KDD2012']:
+    elif args.data in ['criteo']:
         file_name = ['train_i.npy', 'train_x2.npy', 'train_y.npy']
 
     print('run time : %d' % args.run_times)
